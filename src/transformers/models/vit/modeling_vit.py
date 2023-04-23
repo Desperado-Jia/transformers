@@ -78,6 +78,8 @@ class ViTEmbeddings(nn.Module):
         self.position_embeddings = nn.Parameter(torch.randn(1, num_patches + 1, config.hidden_size))
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.config = config
+        
+        self.use_mask_token = use_mask_token
 
     def interpolate_pos_encoding(self, embeddings: torch.Tensor, height: int, width: int) -> torch.Tensor:
         """
@@ -121,7 +123,7 @@ class ViTEmbeddings(nn.Module):
         batch_size, num_channels, height, width = pixel_values.shape
         embeddings = self.patch_embeddings(pixel_values, interpolate_pos_encoding=interpolate_pos_encoding)
 
-        if bool_masked_pos is not None:
+        if bool_masked_pos is not None and self.use_mask_token is True:
             seq_length = embeddings.shape[1]
             mask_tokens = self.mask_token.expand(batch_size, seq_length, -1)
             # replace the masked visual tokens by mask_tokens
